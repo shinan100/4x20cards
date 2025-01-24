@@ -1,0 +1,187 @@
+/* 全局樣式 */
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* 卡片容器 */
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+}
+
+/* 卡片樣式 */
+.card {
+    width: 200px;
+    height: 300px;
+    margin: 10px;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    background-color: #E0FFFF;
+    color: #000000;
+    overflow: auto;
+}
+
+.card-text {
+    color: #000000;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.card-empty {
+    color: #000000;
+    opacity: 0.5;
+    text-align: center;
+    margin-top: 45%;
+}
+
+.card-inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.card.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    background-color: #f8f9fa;
+}
+
+.card-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* 內容樣式 */
+.card img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.card audio {
+    width: 100%;
+    max-height: 40px;
+}
+
+/* 預覽區域 */
+#imagePreview img {
+    max-width: 200px;
+    max-height: 200px;
+}
+
+#audioPreview audio {
+    width: 100%;
+}
+
+.preview-container {
+    position: relative;
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.preview-container img {
+    max-width: 100%;
+    max-height: 200px;
+}
+
+.preview-container .delete-preview {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 2px 8px;
+    font-size: 12px;
+}
+
+/* 顏色選擇器 */
+.color-picker {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+}
+
+.color-option {
+    width: 40px;
+    height: 40px;
+    margin: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-block;
+    border: 2px solid #ddd;
+    transition: border-color 0.3s ease;
+}
+
+.color-option:hover {
+    border-color: #666;
+}
+
+/* 響應式設計 */
+@media (max-width: 1200px) {
+    .cards-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .cards-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .cards-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .cards-container {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+
+/* 拖放效果 */
+.card.dragging {
+    opacity: 0.5;
+    cursor: move;
+}
+
+.card.drag-over {
+    border: 2px dashed #000;
+}
