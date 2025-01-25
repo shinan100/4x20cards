@@ -8,15 +8,15 @@ body {
 .cards-container {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 1rem;
-    padding: 1rem;
+    gap: 0.5rem;
+    padding: 0.5cm 1rem 1rem 1rem;
 }
 
 /* 卡片樣式 */
 .card {
-    width: 200px;
-    height: 300px;
-    margin: 10px;
+    width: 260px;
+    height: 150px;
+    margin: 5px;
     padding: 15px;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
