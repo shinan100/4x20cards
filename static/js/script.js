@@ -100,6 +100,43 @@ function setupEventListeners() {
             }
         });
     });
+    
+    // 處理刪除卡片
+    document.getElementById('deleteCard').addEventListener('click', function() {
+        const modal = document.getElementById('cardModal');
+        const cardId = modal.dataset.cardId;
+        
+        if (!cardId) {
+            console.error('No card ID found');
+            return;
+        }
+
+        if (confirm('確定要清空這張卡片的所有內容嗎？清空後將無法恢復。')) {
+            fetch(`/api/card/${cardId}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to clear card content');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.message) {
+                    // 關閉模態框
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('cardModal'));
+                    modal.hide();
+                    
+                    // 重新加載卡片
+                    loadCards();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('清空卡片內容時發生錯誤：' + error.message);
+            });
+        }
+    });
 }
 
 // 加載卡片
@@ -150,7 +187,17 @@ function renderCardContent(card, element) {
     
     // 顯示文字內容
     if (card.text_content) {
-        content += `<div class="card-text">${card.text_content}</div>`;
+        // 計算字體大小倍數
+        const textLength = card.text_content.length;
+        let fontSize = 14; // 預設字體大小
+        
+        if (textLength < 8) {
+            fontSize = fontSize * 3; // 少於8個字，字體放大3倍
+        } else if (textLength < 20) {
+            fontSize = fontSize * 2; // 少於20個字，字體放大2倍
+        }
+        
+        content += `<div class="card-text" style="font-size: ${fontSize}px">${card.text_content}</div>`;
     }
     
     // 顯示圖片
@@ -198,9 +245,11 @@ function handleCardDoubleClick(event) {
     event.preventDefault();
     event.stopPropagation();
     
-    const card = event.currentTarget;
-    currentCardId = parseInt(card.dataset.cardId);
+    currentCardId = parseInt(event.currentTarget.dataset.cardId);
     const cardInfo = cardData[currentCardId];
+    
+    // 設置模態框的cardId
+    document.getElementById('cardModal').dataset.cardId = currentCardId;
     
     // 清空所有預覽
     document.getElementById('imagePreview').innerHTML = '';
@@ -318,6 +367,7 @@ async function handleSave() {
         
         // 關閉模態框
         cardModal.hide();
+        
     } catch (error) {
         console.error('Error saving card:', error);
         showError('Failed to save card');

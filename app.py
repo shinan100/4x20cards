@@ -4,7 +4,7 @@
 """
 
 # 導入必要的模組
-from flask import Flask, render_template, jsonify, request, send_from_directory  # Flask Web框架相關功能
+from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for  # Flask Web框架相關功能
 from flask_cors import CORS  # 處理跨域請求
 import os  # 操作系統功能
 from datetime import datetime  # 處理日期和時間
@@ -124,6 +124,53 @@ def get_card(card_id):
         }
         return jsonify(card_data)
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/card/<int:card_id>', methods=['DELETE'])
+def delete_card(card_id):
+    """清空卡片內容"""
+    try:
+        card = Card.query.get_or_404(card_id)
+        
+        # 刪除圖片文件
+        if card.image_content:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], card.image_content.path)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            db.session.delete(card.image_content)
+            card.image_content = None
+        
+        # 刪除音頻文件
+        if card.audio_content:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], card.audio_content.path)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            db.session.delete(card.audio_content)
+            card.audio_content = None
+        
+        # 刪除其他文件
+        if card.file_content:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], card.file_content.path)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            db.session.delete(card.file_content)
+            card.file_content = None
+        
+        # 刪除文字內容
+        if card.text_content:
+            db.session.delete(card.text_content)
+            card.text_content = None
+        
+        # 重置卡片背景顏色
+        card.background_color = '#87CEEB'
+        
+        # 保存更改
+        db.session.commit()
+        
+        return jsonify({'message': 'Card content cleared successfully'}), 200
+    except Exception as e:
+        print('Error in delete_card:', str(e))
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/card/<int:card_id>/color', methods=['PUT'])
@@ -260,19 +307,26 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
-    # 應用啟動時初始化數據庫
-    with app.app_context():
-        db.create_all()
+    try:
+        # 應用啟動時初始化數據庫
+        with app.app_context():
+            db.create_all()
+            
+            # 檢查每頁的卡片數量，確保每頁都有20張卡片
+            for page in range(1, 5):
+                cards = Card.query.filter_by(page_number=page).all()
+                if len(cards) != 20:
+                    Card.query.filter_by(page_number=page).delete()
+                    for pos in range(20):
+                        new_card = Card(page_number=page, position=pos)
+                        db.session.add(new_card)
+            db.session.commit()
         
-        # 檢查每頁的卡片數量，確保每頁都有20張卡片
-        for page in range(1, 5):
-            cards = Card.query.filter_by(page_number=page).all()
-            if len(cards) != 20:
-                Card.query.filter_by(page_number=page).delete()
-                for pos in range(20):
-                    new_card = Card(page_number=page, position=pos)
-                    db.session.add(new_card)
-        db.session.commit()
-    
-    # 以調試模式運行應用
-    app.run(debug=True)
+        # 以生產模式運行應用
+        app.run(host='127.0.0.1', port=5000, debug=False)
+    except Exception as e:
+        import traceback
+        with open('error_log.txt', 'w') as f:
+            f.write(f"Error: {str(e)}\n")
+            f.write(traceback.format_exc())
+        input("應用程式發生錯誤，請查看 error_log.txt 文件。按任意鍵退出...")
